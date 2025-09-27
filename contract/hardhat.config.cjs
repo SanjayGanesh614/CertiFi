@@ -1,10 +1,10 @@
-import "@nomicfoundation/hardhat-toolbox";
-import "hardhat-deploy";
+require("@nomicfoundation/hardhat-toolbox");
+require("hardhat-deploy");
 
 // Load environment variables
 const { PRIVATE_KEY, OG_MAINNET_RPC, OG_TESTNET_RPC, ETHERSCAN_API_KEY } = process.env;
 
-export default {
+module.exports = {
   solidity: {
     version: "0.8.24",
     settings: {
