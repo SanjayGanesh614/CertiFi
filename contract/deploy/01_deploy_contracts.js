@@ -1,64 +1,53 @@
 const { ethers } = require("hardhat");
 
-module.exports = async ({ getNamedAccounts, deployments }) => {
-  const { deploy } = deployments;
-  const { deployer } = await getNamedAccounts();
+async function main() {
+  const [deployer] = await ethers.getSigners();
 
-  console.log("Deploying contracts with account:", deployer);
+  console.log("Deploying contracts with the account:", deployer.address);
 
-  // Deploy VeriRWA NFT contract
-  const nftContract = await deploy("VeriRWANFT", {
-    from: deployer,
-    args: [deployer], // Fee collector address
-    log: true,
-    waitConfirmations: 1,
+  // Deploy VeriRWAINFT
+  const VeriRWAINFT = await ethers.getContractFactory("VeriRWAINFT");
+  const nft = await VeriRWAINFT.deploy(
+    deployer.address, // feeCollector
+    deployer.address, // verificationOracle
+    deployer.address, // zgStorageContract
+    deployer.address  // zgComputeContract
+  );
+  await nft.waitForDeployment();
+  console.log("VeriRWAINFT deployed to:", nft.target);
+
+  // Deploy VeriRWAStaking
+  const VeriRWAStaking = await ethers.getContractFactory("VeriRWAStaking");
+  const staking = await VeriRWAStaking.deploy(deployer.address); // Assuming 0G token address
+  await staking.waitForDeployment();
+  console.log("VeriRWAStaking deployed to:", staking.target);
+
+  // Deploy VeriRWAMarketplace
+  const VeriRWAMarketplace = await ethers.getContractFactory("VeriRWAMarketplace");
+  const marketplace = await VeriRWAMarketplace.deploy(
+    nft.target,
+    deployer.address, // paymentToken
+    deployer.address  // feeCollector
+  );
+  await marketplace.waitForDeployment();
+  console.log("VeriRWAMarketplace deployed to:", marketplace.target);
+
+  // Deploy VeriRWA0GIntegration
+  const VeriRWA0GIntegration = await ethers.getContractFactory("VeriRWA0GIntegration");
+  const integration = await VeriRWA0GIntegration.deploy(
+    deployer.address, // zgStorageContract
+    deployer.address, // zgComputeContract
+    deployer.address  // verificationOracle
+  );
+  await integration.waitForDeployment();
+  console.log("VeriRWA0GIntegration deployed to:", integration.target);
+
+  console.log("All contracts deployed successfully!");
+}
+
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
   });
-
-  console.log("VeriRWANFT deployed to:", nftContract.address);
-
-  // Mock 0G token address for staking (replace with actual 0G token)
-  const mockStakingToken = "0x0000000000000000000000000000000000000000"; // Replace with actual 0G token
-
-  // Deploy Staking contract
-  const stakingContract = await deploy("VeriRWAStaking", {
-    from: deployer,
-    args: [mockStakingToken],
-    log: true,
-    waitConfirmations: 1,
-  });
-
-  console.log("VeriRWAStaking deployed to:", stakingContract.address);
-
-  // Mock USDC address for marketplace (replace with actual USDC on 0G)
-  const mockPaymentToken = "0x0000000000000000000000000000000000000000"; // Replace with actual USDC
-
-  // Deploy Marketplace contract
-  const marketplaceContract = await deploy("VeriRWAMarketplace", {
-    from: deployer,
-    args: [nftContract.address, mockPaymentToken, deployer],
-    log: true,
-    waitConfirmations: 1,
-  });
-
-  console.log("VeriRWAMarketplace deployed to:", marketplaceContract.address);
-
-  // Setup contracts
-  const nft = await ethers.getContractAt("VeriRWANFT", nftContract.address);
-  const staking = await ethers.getContractAt("VeriRWAStaking", stakingContract.address);
-
-  // Set staking contract in NFT
-  await nft.setStakingContract(stakingContract.address);
-  console.log("Staking contract set in NFT");
-
-  // Set deployer as authorized auditor
-  await nft.setAuthorizedAuditor(deployer, true);
-  console.log("Deployer set as authorized auditor");
-
-  console.log("\n=== Deployment Summary ===");
-  console.log("VeriRWANFT:", nftContract.address);
-  console.log("VeriRWAStaking:", stakingContract.address);
-  console.log("VeriRWAMarketplace:", marketplaceContract.address);
-  console.log("=========================");
-};
-
-module.exports.tags = ["VeriRWA"];
