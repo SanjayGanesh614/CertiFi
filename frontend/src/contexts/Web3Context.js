@@ -1,18 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { ethers } from 'ethers';
 
-// 0G Network Configuration
-const ZG_TESTNET_CONFIG = {
-  chainId: '0x40EA', // 16602
-  chainName: '0G-Network-Testnet',
-  nativeCurrency: {
-    name: 'A0GI',
-    symbol: 'A0GI',
-    decimals: 18,
-  },
-  rpcUrls: ['https://evmrpc-testnet.0g.ai'],
-  blockExplorerUrls: ['https://chainscan-newton.0g.ai/'],
-};
+import { ZG_TESTNET_CONFIG, CONTRACT_ADDRESSES } from '../config';
 
 // Contract ABIs (simplified for key functions)
 const VERIRWA_INFT_ABI = [

@@ -26,10 +26,13 @@ async function initializeServices() {
   }
 }
 
-// Routes will be imported here
-// app.use('/api/assets', require('./routes/assets'));
-// app.use('/api/marketplace', require('./routes/marketplace'));
-// app.use('/api/verification', require('./routes/verification'));
+// Routes
+app.use('/api/assets', require('./routes/assets'));
+app.use('/api/marketplace', require('./routes/marketplace'));
+
+// Make services available to routes
+app.locals.blockchainService = blockchainService;
+app.locals.computeService = computeService;
 
 // Error handling middleware
 app.use((err, req, res, next) => {
